@@ -11,13 +11,12 @@
             --bg-end: #2c0202;
             --primary: #f43f5e;
             --accent: #eab308;
-            --text-dim: #9ca3af;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
             color: #fff;
-            font-family: 'Cinzel', 'Georgia', serif;
+            font-family: 'Cinzel', serif;
             padding: 12px;
             width: 100%;
             height: 100%;
@@ -36,15 +35,12 @@
             color: var(--primary);
             font-size: 28px;
             font-weight: 700;
-            text-shadow: 0 0 10px rgba(244,63,94,0.5);
-            letter-spacing: 2px;
-            margin-bottom: 4px;
+            text-shadow: 0 0 10px rgba(244, 63, 94, 0.5);
         }
         .info-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.7);
             border-radius: 6px;
             padding: 6px 10px;
             margin-bottom: 10px;
@@ -61,18 +57,27 @@
         .choosing { background: var(--accent); color: #000; animation: pulse 1s infinite; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
         .part-count { font-size: 14px; }
-        .content-area {
-            flex: 1;
-            overflow-y: auto;
-        }
+        .content-area { flex: 1; overflow-y: auto; }
         .participant {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             padding: 4px 8px;
-            border-bottom: 1px solid rgba(180,0,0,0.3);
+            border-bottom: 1px solid rgba(180, 0, 0, 0.3);
         }
-        .part-name { color: #fca5a5; font-weight: bold; }
-        .part-pref { color: var(--accent); }
+        .part-name {
+            color: #fca5a5;
+            font-weight: bold;
+            flex: 1;
+        }
+        .part-pref {
+            font-size: 20px;
+            width: 36px;
+            text-align: center;
+        }
+        .icon-m { color: #4aa3ff; }   /* azul */
+        .icon-f { color: #ff69b4; }   /* rosa */
+        .icon-bi { color: #ce93d8; }  /* lila */
         .results-title {
             font-size: 18px;
             color: var(--accent);
@@ -80,27 +85,27 @@
             margin: 10px 0;
         }
         .group-box {
-            background: rgba(0,0,0,0.6);
+            background: rgba(0, 0, 0, 0.6);
             border: 1px solid var(--accent);
             border-radius: 6px;
             padding: 8px;
             margin: 8px 0;
         }
-        .group-type {
-            color: var(--primary);
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-        .member {
-            padding: 2px 6px;
-            color: #ddd;
-        }
+        .group-type { color: var(--primary); font-weight: bold; }
+        .member { padding: 2px 6px; color: #ddd; }
         .empty {
             text-align: center;
             color: #a1a1aa;
             margin-top: 40px;
         }
-        .pagination { margin-top: 8px; font-size: 10px; color: #fca5a5; }
+        .pagination {
+            margin-top: 8px;
+            font-size: 10px;
+            color: #fca5a5;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -109,10 +114,10 @@
     </div>
     <div class="info-row">
         <div>ESTADO: <span class="status-badge" id="status-badge">CLOSED</span></div>
-        <div class="part-count">Nº PARTICIPANTES: <span id="total-count">0</span></div>
+        <div class="part-count">👥 <span id="total-count">0</span></div>
     </div>
     <div class="content-area" id="main-area"></div>
-    <div class="pagination" id="pagination"></div>
+    <div class="pagination" id="pagination-bar"></div>
 
     <script>
         (function() {
@@ -122,57 +127,75 @@
             const estado = g('estado', 'CLOSED');
             const total = parseInt(g('total', '0')) || 0;
             const ngrupos = parseInt(g('ngrupos', '0')) || 0;
-
-            // Badge
-            const badge = document.getElementById('status-badge');
-            badge.textContent = estado;
-            badge.className = 'status-badge ';
-            if (estado === 'OPEN') badge.classList.add('open');
-            else if (estado === 'CHOOSING') badge.classList.add('choosing');
-            else badge.classList.add('closed');
+            const pagina = g('pag', '1');
+            const maxPag = g('maxpag', '1');
+            const numMostrados = parseInt(g('num', '0')) || 0;
 
             document.getElementById('total-count').textContent = total;
+
+            const badge = document.getElementById('status-badge');
+            badge.textContent = estado;
+            badge.className = 'status-badge ' + (estado === 'OPEN' ? 'open' : estado === 'CHOOSING' ? 'choosing' : 'closed');
 
             const main = document.getElementById('main-area');
             let html = '';
 
             if (estado === 'CHOOSING') {
-                html = `<div class="group-box" style="text-align:center;">
-                    <div class="group-type">🎲 ELIGIENDO LAS PAREJAS / CHOOSING PAIRS</div>
-                    <div style="color:#fda4af; font-style:italic;">animación de colores...</div>
+                html = `<div class="group-box" style="text-align:center">
+                    <div class="group-type">💞 BUSCANDO PAREJAS... / MATCHING...</div>
+                    <div style="color:#fda4af">combinando preferencias</div>
                 </div>`;
             } else if (estado === 'RESULTS') {
-                html = `<div class="results-title">🏆 PAREJAS / GROUPS</div>`;
+                html = `<div class="results-title">❤️ PAREJAS / GROUPS</div>`;
                 for (let i = 0; i < ngrupos; i++) {
                     const tipo = g('t' + i);
-                    const count = parseInt(g('n' + i)) || 0;
+                    const n = parseInt(g('n' + i)) || 0;
+                    let icon = tipo === 'PAIR' ? '💑' : tipo === 'TRIO' ? '👨‍👩‍👦' : '👫👫';
                     html += `<div class="group-box">
-                        <div class="group-type">${tipo} (${count})</div>`;
-                    for (let j = 0; j < count; j++) {
-                        const member = g('m' + i + '_' + j);
-                        if (member) html += `<div class="member">${member}</div>`;
+                        <div class="group-type">${icon} ${tipo} (${n})</div>`;
+                    for (let j = 0; j < n; j++) {
+                        const miembro = g('m' + i + '_' + j);
+                        if (miembro) html += `<div class="member">${miembro}</div>`;
                     }
                     html += `</div>`;
                 }
             } else {
-                // Mostrar lista de participantes
                 if (total === 0) {
-                    html = `<div class="empty">No hay participantes aún. / No participants yet.</div>`;
+                    html = `<div class="empty">
+                        🕯️ No hay participantes aún.<br>Toca la pantalla
+                    </div>`;
                 } else {
-                    html = `<div style="font-size:14px; margin-bottom:8px;">👥 Participantes:</div>`;
-                    for (let i = 0; i < total; i++) {
-                        const name = g('p' + i);
-                        const pref = g('g' + i); // M, F, Bisex
-                        if (name) {
+                    html = `<div style="font-size:14px; margin-bottom:8px;">🔮 Participantes:</div>`;
+                    for (let i = 0; i < numMostrados; i++) {
+                        // La LSL envía &c0=Nombre &g0=M (preferencia)
+                        const nombre = g('c' + i);
+                        const pref = g('g' + i);
+                        if (nombre) {
+                            let icono = '';
+                            let claseColor = '';
+                            if (pref === 'M') {
+                                icono = '♂️';
+                                claseColor = 'icon-m';
+                            } else if (pref === 'F') {
+                                icono = '♀️';
+                                claseColor = 'icon-f';
+                            } else if (pref === 'Bisex') {
+                                icono = '⚤';
+                                claseColor = 'icon-bi';
+                            }
                             html += `<div class="participant">
-                                <span class="part-name">${name}</span>
-                                <span class="part-pref">${pref}</span>
+                                <span class="part-name">${i+1}. ${nombre}</span>
+                                <span class="part-pref ${claseColor}">${icono}</span>
                             </div>`;
                         }
                     }
                 }
             }
             main.innerHTML = html;
+
+            document.getElementById('pagination-bar').innerHTML = total > 0
+                ? `<span>Pág. ${pagina}/${maxPag} (${total})</span>`
+                : `<span>Esperando...</span>`;
         })();
     </script>
 </body>
