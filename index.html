@@ -6,7 +6,6 @@
     <title>Sexo a Ciegas</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* ... mismos estilos que antes, sin cambios ... */
         :root { --bg-start: #110202; --bg-end: #2c0202; --primary: #f43f5e; --accent: #eab308; }
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
@@ -56,15 +55,15 @@
             const urlParams = new URLSearchParams(window.location.search);
             function g(name, fallback) { return urlParams.get(name) || fallback || ''; }
 
-            const estado = g('estado', 'CLOSED');
-            const total = parseInt(g('total', '0')) || 0;
-            const ngrupos = parseInt(g('ngrupos', '0')) || 0;
+            const estado = g('e', 'CLOSED');
+            const total = parseInt(g('t', '0')) || 0;
+            const ngrupos = parseInt(g('ng', '0')) || 0;
             const pagina = g('pag', '1');
             const maxPag = g('maxpag', '1');
-            const numMostrados = parseInt(g('num', '0')) || total; // si no se envía num, usar total
-            const timeLeft = parseInt(g('time_left', '-1'));
-            const timeTotal = parseInt(g('time_total', '0'));
-            const finished = g('finished', '0') === '1';
+            const numMostrados = parseInt(g('num', '0')) || total;
+            const timeLeft = parseInt(g('tl', '-1'));
+            const timeTotal = parseInt(g('tt', '0'));
+            const finished = g('fin', '0') === '1';
 
             document.getElementById('total-count').textContent = total;
 
@@ -83,7 +82,7 @@
                     <div class="group-type">💞 BUSCANDO PAREJAS... / MATCHING...</div>
                 </div>`;
             } else if (estado === 'RESULTS' || estado === 'SESSION') {
-                // Mostrar temporizador si estamos en sesión
+                // Mostrar temporizador solo en SESSION
                 if (estado === 'SESSION' && timeLeft >= 0) {
                     const min = Math.floor(timeLeft / 60);
                     const sec = timeLeft % 60;
@@ -99,12 +98,13 @@
                         </div>`;
                     }
                 }
-                // Mostrar grupos (tanto en RESULTS como SESSION)
+                // Mostrar grupos (tanto en RESULTS como en SESSION)
                 if (ngrupos > 0) {
                     html += `<div class="results-title">❤️ PAREJAS / GROUPS</div>`;
                     for (let i = 0; i < ngrupos; i++) {
-                        const tipo = g('t' + i), n = parseInt(g('n' + i));
-                        let icon = tipo==='PAIR'?'💑':tipo==='TRIO'?'👨‍👩‍👦':'👫👫';
+                        const tipo = g('tp' + i);
+                        const n = parseInt(g('nm' + i)) || 0;
+                        let icon = tipo === 'PAIR' ? '💑' : tipo === 'TRIO' ? '👨‍👩‍👦' : '👫👫';
                         html += `<div class="group-box">
                             <div class="group-type">${icon} ${tipo} (${n})</div>`;
                         for (let j = 0; j < n; j++) {
@@ -123,7 +123,7 @@
                 } else {
                     html = `<div style="font-size:14px; margin-bottom:8px;">🔮 Participantes:</div>`;
                     for (let i = 0; i < numMostrados; i++) {
-                        const nombre = g('p' + i);  // <-- ahora usamos 'p'
+                        const nombre = g('p' + i);
                         const pref = g('g' + i);
                         if (nombre) {
                             let icono = '', claseColor = '';
