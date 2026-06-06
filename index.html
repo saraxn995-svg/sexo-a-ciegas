@@ -82,7 +82,6 @@
                     <div class="group-type">💞 BUSCANDO PAREJAS... / MATCHING...</div>
                 </div>`;
             } else if (estado === 'RESULTS' || estado === 'SESSION') {
-                // Mostrar temporizador solo en SESSION
                 if (estado === 'SESSION' && timeLeft >= 0) {
                     const min = Math.floor(timeLeft / 60);
                     const sec = timeLeft % 60;
@@ -98,7 +97,6 @@
                         </div>`;
                     }
                 }
-                // Mostrar grupos (tanto en RESULTS como en SESSION)
                 if (ngrupos > 0) {
                     html += `<div class="results-title">❤️ PAREJAS / GROUPS</div>`;
                     for (let i = 0; i < ngrupos; i++) {
@@ -117,7 +115,7 @@
                 if (!ngrupos && estado === 'RESULTS') {
                     html += `<div class="empty">No se formaron parejas.</div>`;
                 }
-            } else { // OPEN o CLOSED
+            } else {
                 if (total === 0) {
                     html = `<div class="empty">🕯️ No hay participantes aún.<br>Toca la pantalla</div>`;
                 } else {
