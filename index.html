@@ -61,9 +61,39 @@
             const pagina = g('pag', '1');
             const maxPag = g('maxpag', '1');
             const numMostrados = parseInt(g('num', '0')) || total;
-            const timeLeft = parseInt(g('tl', '-1'));
+            let timeLeft = parseInt(g('tl', '0'));   // segundos iniciales (solo se usan al entrar en SESSION)
             const timeTotal = parseInt(g('tt', '0'));
-            const finished = g('fin', '0') === '1';
+            let finished = g('fin', '0') === '1';
+
+            // Si estamos en SESSION y no ha terminado, iniciamos un contador interno
+            let intervalId = null;
+            function updateTimerDisplay() {
+                const timerEl = document.getElementById('timer-display');
+                if (timerEl) {
+                    const min = Math.floor(timeLeft / 60);
+                    const sec = timeLeft % 60;
+                    timerEl.textContent = min + ':' + (sec < 10 ? '0' : '') + sec;
+                }
+            }
+
+            function stopTimer() {
+                if (intervalId) {
+                    clearInterval(intervalId);
+                    intervalId = null;
+                }
+            }
+
+            if (estado === 'SESSION' && !finished && timeLeft > 0) {
+                intervalId = setInterval(function() {
+                    timeLeft--;
+                    if (timeLeft <= 0) {
+                        timeLeft = 0;
+                        finished = true;
+                        stopTimer();
+                    }
+                    updateTimerDisplay();
+                }, 1000);
+            }
 
             document.getElementById('total-count').textContent = total;
 
@@ -83,10 +113,7 @@
                 </div>`;
             } else if (estado === 'RESULTS' || estado === 'SESSION') {
                 // Mostrar temporizador solo en SESSION
-                if (estado === 'SESSION' && timeLeft >= 0) {
-                    const min = Math.floor(timeLeft / 60);
-                    const sec = timeLeft % 60;
-                    const displayTime = min + ':' + (sec < 10 ? '0' : '') + sec;
+                if (estado === 'SESSION') {
                     if (finished) {
                         html += `<div class="timer-box">
                             <div class="finished-label">⌛ TIEMPO FINALIZADO!!</div>
@@ -94,11 +121,11 @@
                     } else {
                         html += `<div class="timer-box">
                             <div class="timer-label">⏳ TIEMPO DE SEXO / SEX TIME</div>
-                            <div class="timer-display">${displayTime}</div>
+                            <div class="timer-display" id="timer-display">--:--</div>
                         </div>`;
                     }
                 }
-                // Mostrar grupos (tanto en RESULTS como SESSION)
+                // Mostrar grupos
                 if (ngrupos > 0) {
                     html += `<div class="results-title">❤️ PAREJAS / GROUPS</div>`;
                     for (let i = 0; i < ngrupos; i++) {
@@ -117,7 +144,7 @@
                 if (!ngrupos && estado === 'RESULTS') {
                     html += `<div class="empty">No se formaron parejas.</div>`;
                 }
-            } else { // OPEN o CLOSED
+            } else {
                 if (total === 0) {
                     html = `<div class="empty">🕯️ No hay participantes aún.<br>Toca la pantalla</div>`;
                 } else {
@@ -142,6 +169,11 @@
             document.getElementById('pagination-bar').innerHTML = total > 0
                 ? `<span>Pág. ${pagina}/${maxPag} (${total})</span>`
                 : `<span>Esperando...</span>`;
+
+            // Inicializar el display del timer al cargar la página
+            if (estado === 'SESSION' && !finished) {
+                updateTimerDisplay();
+            }
         })();
     </script>
 </body>
