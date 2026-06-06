@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Sexo a Ciegas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-start: #110202;
+            --bg-end: #2c0202;
+            --primary: #f43f5e;
+            --accent: #eab308;
+            --text-dim: #9ca3af;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+            color: #fff;
+            font-family: 'Cinzel', 'Georgia', serif;
+            padding: 12px;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-size: 13px;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #800;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+        }
+        .title {
+            color: var(--primary);
+            font-size: 28px;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(244,63,94,0.5);
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.7);
+            border-radius: 6px;
+            padding: 6px 10px;
+            margin-bottom: 10px;
+        }
+        .status-badge {
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+        .open { background: #16a34a; }
+        .closed { background: #dc2626; }
+        .choosing { background: var(--accent); color: #000; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        .part-count { font-size: 14px; }
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .participant {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 8px;
+            border-bottom: 1px solid rgba(180,0,0,0.3);
+        }
+        .part-name { color: #fca5a5; font-weight: bold; }
+        .part-pref { color: var(--accent); }
+        .results-title {
+            font-size: 18px;
+            color: var(--accent);
+            text-align: center;
+            margin: 10px 0;
+        }
+        .group-box {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            padding: 8px;
+            margin: 8px 0;
+        }
+        .group-type {
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .member {
+            padding: 2px 6px;
+            color: #ddd;
+        }
+        .empty {
+            text-align: center;
+            color: #a1a1aa;
+            margin-top: 40px;
+        }
+        .pagination { margin-top: 8px; font-size: 10px; color: #fca5a5; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">SEXO A CIEGAS</div>
+    </div>
+    <div class="info-row">
+        <div>ESTADO: <span class="status-badge" id="status-badge">CLOSED</span></div>
+        <div class="part-count">Nº PARTICIPANTES: <span id="total-count">0</span></div>
+    </div>
+    <div class="content-area" id="main-area"></div>
+    <div class="pagination" id="pagination"></div>
+
+    <script>
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            function g(name, fallback) { return urlParams.get(name) || fallback || ''; }
+
+            const estado = g('estado', 'CLOSED');
+            const total = parseInt(g('total', '0')) || 0;
+            const ngrupos = parseInt(g('ngrupos', '0')) || 0;
+
+            // Badge
+            const badge = document.getElementById('status-badge');
+            badge.textContent = estado;
+            badge.className = 'status-badge ';
+            if (estado === 'OPEN') badge.classList.add('open');
+            else if (estado === 'CHOOSING') badge.classList.add('choosing');
+            else badge.classList.add('closed');
+
+            document.getElementById('total-count').textContent = total;
+
+            const main = document.getElementById('main-area');
+            let html = '';
+
+            if (estado === 'CHOOSING') {
+                html = `<div class="group-box" style="text-align:center;">
+                    <div class="group-type">🎲 ELIGIENDO LAS PAREJAS / CHOOSING PAIRS</div>
+                    <div style="color:#fda4af; font-style:italic;">animación de colores...</div>
+                </div>`;
+            } else if (estado === 'RESULTS') {
+                html = `<div class="results-title">🏆 PAREJAS / GROUPS</div>`;
+                for (let i = 0; i < ngrupos; i++) {
+                    const tipo = g('t' + i);
+                    const count = parseInt(g('n' + i)) || 0;
+                    html += `<div class="group-box">
+                        <div class="group-type">${tipo} (${count})</div>`;
+                    for (let j = 0; j < count; j++) {
+                        const member = g('m' + i + '_' + j);
+                        if (member) html += `<div class="member">${member}</div>`;
+                    }
+                    html += `</div>`;
+                }
+            } else {
+                // Mostrar lista de participantes
+                if (total === 0) {
+                    html = `<div class="empty">No hay participantes aún. / No participants yet.</div>`;
+                } else {
+                    html = `<div style="font-size:14px; margin-bottom:8px;">👥 Participantes:</div>`;
+                    for (let i = 0; i < total; i++) {
+                        const name = g('p' + i);
+                        const pref = g('g' + i); // M, F, Bisex
+                        if (name) {
+                            html += `<div class="participant">
+                                <span class="part-name">${name}</span>
+                                <span class="part-pref">${pref}</span>
+                            </div>`;
+                        }
+                    }
+                }
+            }
+            main.innerHTML = html;
+        })();
+    </script>
+</body>
+</html>
