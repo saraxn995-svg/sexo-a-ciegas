@@ -61,11 +61,10 @@
             const pagina = g('pag', '1');
             const maxPag = g('maxpag', '1');
             const numMostrados = parseInt(g('num', '0')) || total;
-            let timeLeft = parseInt(g('tl', '0'));   // segundos iniciales (solo se usan al entrar en SESSION)
+            let timeLeft = parseInt(g('tl', '0'));
             const timeTotal = parseInt(g('tt', '0'));
             let finished = g('fin', '0') === '1';
 
-            // Si estamos en SESSION y no ha terminado, iniciamos un contador interno
             let intervalId = null;
             function updateTimerDisplay() {
                 const timerEl = document.getElementById('timer-display');
@@ -75,22 +74,14 @@
                     timerEl.textContent = min + ':' + (sec < 10 ? '0' : '') + sec;
                 }
             }
-
             function stopTimer() {
-                if (intervalId) {
-                    clearInterval(intervalId);
-                    intervalId = null;
-                }
+                if (intervalId) { clearInterval(intervalId); intervalId = null; }
             }
 
             if (estado === 'SESSION' && !finished && timeLeft > 0) {
                 intervalId = setInterval(function() {
                     timeLeft--;
-                    if (timeLeft <= 0) {
-                        timeLeft = 0;
-                        finished = true;
-                        stopTimer();
-                    }
+                    if (timeLeft <= 0) { timeLeft = 0; finished = true; stopTimer(); }
                     updateTimerDisplay();
                 }, 1000);
             }
@@ -112,12 +103,9 @@
                     <div class="group-type">💞 BUSCANDO PAREJAS... / MATCHING...</div>
                 </div>`;
             } else if (estado === 'RESULTS' || estado === 'SESSION') {
-                // Mostrar temporizador solo en SESSION
                 if (estado === 'SESSION') {
                     if (finished) {
-                        html += `<div class="timer-box">
-                            <div class="finished-label">⌛ TIEMPO FINALIZADO!!</div>
-                        </div>`;
+                        html += `<div class="timer-box"><div class="finished-label">⌛ TIEMPO FINALIZADO!!</div></div>`;
                     } else {
                         html += `<div class="timer-box">
                             <div class="timer-label">⏳ TIEMPO DE SEXO / SEX TIME</div>
@@ -125,7 +113,6 @@
                         </div>`;
                     }
                 }
-                // Mostrar grupos
                 if (ngrupos > 0) {
                     html += `<div class="results-title">❤️ PAREJAS / GROUPS</div>`;
                     for (let i = 0; i < ngrupos; i++) {
@@ -170,7 +157,6 @@
                 ? `<span>Pág. ${pagina}/${maxPag} (${total})</span>`
                 : `<span>Esperando...</span>`;
 
-            // Inicializar el display del timer al cargar la página
             if (estado === 'SESSION' && !finished) {
                 updateTimerDisplay();
             }
