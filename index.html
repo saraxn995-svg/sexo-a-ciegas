@@ -6,6 +6,7 @@
     <title>Sexo a Ciegas</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        /* ... mismos estilos que antes, sin cambios ... */
         :root { --bg-start: #110202; --bg-end: #2c0202; --primary: #f43f5e; --accent: #eab308; }
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
@@ -19,7 +20,7 @@
         .info-row { display:flex; justify-content:space-between; background:rgba(0,0,0,0.7); border-radius:6px; padding:6px 10px; margin-bottom:10px; }
         .status-badge { padding:3px 10px; border-radius:4px; font-weight:bold; font-size:11px; text-transform:uppercase; }
         .open { background:#16a34a; } .closed { background:#dc2626; } .choosing { background:var(--accent); color:#000; animation:pulse 1s infinite; }
-        .session { background:#a855f7; } /* morado para sesión */
+        .session { background:#a855f7; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
         .part-count { font-size:14px; }
         .content-area { flex:1; overflow-y:auto; }
@@ -60,7 +61,7 @@
             const ngrupos = parseInt(g('ngrupos', '0')) || 0;
             const pagina = g('pag', '1');
             const maxPag = g('maxpag', '1');
-            const numMostrados = parseInt(g('num', '0')) || 0;
+            const numMostrados = parseInt(g('num', '0')) || total; // si no se envía num, usar total
             const timeLeft = parseInt(g('time_left', '-1'));
             const timeTotal = parseInt(g('time_total', '0'));
             const finished = g('finished', '0') === '1';
@@ -81,42 +82,31 @@
                 html = `<div class="group-box" style="text-align:center">
                     <div class="group-type">💞 BUSCANDO PAREJAS... / MATCHING...</div>
                 </div>`;
-            } else if (estado === 'RESULTS') {
-                html = `<div class="results-title">❤️ PAREJAS / GROUPS</div>`;
-                for (let i = 0; i < ngrupos; i++) {
-                    const tipo = g('t' + i), n = parseInt(g('n' + i));
-                    let icon = tipo==='PAIR'?'💑':tipo==='TRIO'?'👨‍👩‍👦':'👫👫';
-                    html += `<div class="group-box"><div class="group-type">${icon} ${tipo} (${n})</div>`;
-                    for (let j = 0; j < n; j++) {
-                        const miembro = g('m' + i + '_' + j);
-                        if (miembro) html += `<div class="member">${miembro}</div>`;
-                    }
-                    html += `</div>`;
-                }
-            } else if (estado === 'SESSION') {
-                // Mostrar temporizador
-                if (timeLeft >= 0) {
+            } else if (estado === 'RESULTS' || estado === 'SESSION') {
+                // Mostrar temporizador si estamos en sesión
+                if (estado === 'SESSION' && timeLeft >= 0) {
                     const min = Math.floor(timeLeft / 60);
                     const sec = timeLeft % 60;
                     const displayTime = min + ':' + (sec < 10 ? '0' : '') + sec;
                     if (finished) {
-                        html = `<div class="timer-box">
+                        html += `<div class="timer-box">
                             <div class="finished-label">⌛ TIEMPO FINALIZADO!!</div>
                         </div>`;
                     } else {
-                        html = `<div class="timer-box">
+                        html += `<div class="timer-box">
                             <div class="timer-label">⏳ TIEMPO DE SEXO / SEX TIME</div>
                             <div class="timer-display">${displayTime}</div>
                         </div>`;
                     }
                 }
-                // También mostramos los grupos debajo (opcional)
+                // Mostrar grupos (tanto en RESULTS como SESSION)
                 if (ngrupos > 0) {
                     html += `<div class="results-title">❤️ PAREJAS / GROUPS</div>`;
                     for (let i = 0; i < ngrupos; i++) {
                         const tipo = g('t' + i), n = parseInt(g('n' + i));
                         let icon = tipo==='PAIR'?'💑':tipo==='TRIO'?'👨‍👩‍👦':'👫👫';
-                        html += `<div class="group-box"><div class="group-type">${icon} ${tipo} (${n})</div>`;
+                        html += `<div class="group-box">
+                            <div class="group-type">${icon} ${tipo} (${n})</div>`;
                         for (let j = 0; j < n; j++) {
                             const miembro = g('m' + i + '_' + j);
                             if (miembro) html += `<div class="member">${miembro}</div>`;
@@ -124,13 +114,16 @@
                         html += `</div>`;
                     }
                 }
+                if (!ngrupos && estado === 'RESULTS') {
+                    html += `<div class="empty">No se formaron parejas.</div>`;
+                }
             } else { // OPEN o CLOSED
                 if (total === 0) {
                     html = `<div class="empty">🕯️ No hay participantes aún.<br>Toca la pantalla</div>`;
                 } else {
                     html = `<div style="font-size:14px; margin-bottom:8px;">🔮 Participantes:</div>`;
                     for (let i = 0; i < numMostrados; i++) {
-                        const nombre = g('c' + i);
+                        const nombre = g('p' + i);  // <-- ahora usamos 'p'
                         const pref = g('g' + i);
                         if (nombre) {
                             let icono = '', claseColor = '';
